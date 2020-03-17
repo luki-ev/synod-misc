@@ -181,16 +181,6 @@ löscht:</strong>
                 <li>Abgeleitete Werke müssen ebenfalls unter die CC BY-SA oder eine vergleichbare Lizenz gestellt werden.</li>
             </ul>
             Weitere Informationen und Verweise zum vollständigen Text der Lizenz findest du bei <a href="https&#x3a;&#x2F;&#x2F;creativecommons&#x2e;org&#x2F;licenses&#x2F;by&#x2d;sa&#x2F;3&#x2e;0&#x2F;de&#x2F;">https:&#x2F;&#x2F;creativecommons.org&#x2F;licenses&#x2F;by-sa&#x2F;3.0&#x2F;de&#x2F;</a><br><br>Wir empfehlen dir aber, genau zu prüfen, ob unsere Datenschutzerklärung auch für deinen Server passt. Die Freigabe dieses Textes zur Nutzung und Anpassung ist keine Rechtsberatung. Frag im Zweifelsfall einen Datenschutzbeauftragten oder einen Rechtsanwalt.
-            <br>
-            {% if not public_version %}
-            <!-- The variables used here are only provided when the 'u' param is given to the homeserver -->
-            <form method="post" action="consent">
-                <input type="hidden" name="v" value="{{version}}" />
-                <input type="hidden" name="u" value="{{user}}" />
-                <input type="hidden" name="h" value="{{userhmac}}" />
-                <input type="submit" value="Akzeptieren" />
-            </form>
-            {% endif %}
         </div>
     </div>
 </body>
