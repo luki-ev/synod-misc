@@ -84,16 +84,6 @@
             </ul>
             <p>Weitere Informationen und Verweise zum vollständigen Text der Lizenz findest du bei <a href="https://creativecommons.org/licenses/by-sa/3.0/de/">https://creativecommons.org/licenses/by-sa/3.0/de/</a>.</p>
             <p>Wir empfehlen dir aber, genau zu prüfen, ob unsere Datenschutzerklärung auch für deinen Integrationsserver passt. Die Freigabe dieses Textes zur Nutzung und Anpassung ist keine Rechtsberatung. Frag im Zweifelsfall einen Datenschutzbeauftragten oder einen Rechtsanwalt.</p>
-
-            {% if not public_version %}
-            <!-- The variables used here are only provided when the 'u' param is given to the homeserver -->
-            <form method="post" action="consent">
-                <input type="hidden" name="v" value="{{version}}" />
-                <input type="hidden" name="u" value="{{user}}" />
-                <input type="hidden" name="h" value="{{userhmac}}" />
-                <input type="submit" value="Akzeptieren" />
-            </form>
-            {% endif %}
         </div>
     </div>
 </body>
