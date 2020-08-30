@@ -8,12 +8,13 @@ PSQL_PASSWORD=password
 PSQL_HOST=localhost
 PSQL_DB=synapse
 
-ROOMLIST=$(curl --silent --header "Authorization: Bearer $API_TOKEN" $HOST/_synapse/admin/v1/rooms?limit=$ROOMLIMIT)
+# user-agent workaround for https://github.com/matrix-org/synapse/issues/8188
+ROOMLIST=$(curl --silent --user-agent "Synapse/1.19.1" --header "Authorization: Bearer $API_TOKEN" $HOST/_synapse/admin/v1/rooms?limit=$ROOMLIMIT)
 
 ROOMS_WITHOUT_LOCAL_USERS=$(echo $ROOMLIST | jq '.rooms[] | select(.joined_local_members == 0) | .room_id')
 
 for room in $ROOMS_WITHOUT_LOCAL_USERS; do
-	curl --silent --header "Authorization: Bearer $API_TOKEN" --header "Content-Type: application/json" -d "{ \"room_id\": $room }" --output /dev/null $HOST/_synapse/admin/v1/purge_room
+	curl --silent --user-agent "Synapse/1.19.1" --header "Authorization: Bearer $API_TOKEN" --header "Content-Type: application/json" -d "{ \"room_id\": $room }" --output /dev/null $HOST/_synapse/admin/v1/purge_room
 done
 
 ROOMS_TO_COMPRESS=$(psql -w -U $PSQL_USER -h $PSQL_HOST --quiet -t -c 'SELECT room_id  FROM state_groups_state GROUP BY room_id HAVING count(*) > 100000;' $PSQL_DB)
