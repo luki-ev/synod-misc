@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# This script is everything that is presented on https://levans.fr/shrink-synapse-database.html put into one bash script and adapted to monit init system at the end
+# This script is everything that is presented on https://levans.fr/shrink-synapse-database.html put into one bash script
+# and adapted to monit init system at the end
 
 API_TOKEN=<ADD HERE>
 HOST=http://localhost:8008
