@@ -24,9 +24,12 @@ for room in $ROOMS_TO_COMPRESS; do
     psql -w -U $PSQL_USER -h $PSQL_HOST --quiet $PSQL_DB < /tmp/state-compressor.sql
 done
 
-monit stop all
+monit stop synapse
 
 psql -w -U $PSQL_USER -h $PSQL_HOST --quiet -t -c 'REINDEX DATABASE $PSQL_DB;' $PSQL_DB
 psql -w -U $PSQL_USER -h $PSQL_HOST --quiet -t -c 'VACUUM FULL;' $PSQL_DB >/dev/null 2>&1
 
-monit start all
+monit start synapse
+monit start federation_reader
+monit start federation_sender
+monit start user_directory
