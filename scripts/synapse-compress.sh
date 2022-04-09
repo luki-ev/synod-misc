@@ -19,18 +19,26 @@ for room in $ROOMS_WITHOUT_LOCAL_USERS; do
 	curl --silent --header "Authorization: Bearer $API_TOKEN" --header "Content-Type: application/json" -d "{ \"room_id\": $room }" --output /dev/null $HOST/_synapse/admin/v1/purge_room
 done
 
-ROOMS_TO_COMPRESS=$(psql -w -U $PSQL_USER -h $PSQL_HOST --quiet -t -c 'SELECT room_id  FROM state_groups_state GROUP BY room_id HAVING count(*) > 100000;' $PSQL_DB)
+TIMESTAMPMS30DAYS=$(date --date="-30 days" +%s000)
+curl --silent --header "Authorization: Bearer $API_TOKEN" --header "Content-Type: application/json" -d "{}" --output /dev/null "$HOST/_synapse/admin/v1/purge_media_cache?before_ts=$TIMESTAMPMS30DAYS"
 
-for room in $ROOMS_TO_COMPRESS; do
-	$HOME/bin/synapse-compress-state -t -o /tmp/state-compressor.sql -p "host=$PSQL_HOST user=$PSQL_USER password=$PSQL_PASSWORD dbname=$PSQL_DB" -r "$room" >/dev/null 2>&1
-    psql -w -U $PSQL_USER -h $PSQL_HOST --quiet $PSQL_DB < /tmp/state-compressor.sql
-done
+# manual state compression disabled, it uses too much RAM and gets OOM killed
+#ROOMS_TO_COMPRESS=$(psql -w -U $PSQL_USER -h $PSQL_HOST --quiet -t -c 'SELECT room_id  FROM state_groups_state GROUP BY room_id HAVING count(*) > 100000;' $PSQL_DB)
+#for room in $ROOMS_TO_COMPRESS; do
+#	$HOME/bin/synapse-compress-state -t -o /tmp/state-compressor.sql -p "host=$PSQL_HOST user=$PSQL_USER password=$PSQL_PASSWORD dbname=$PSQL_DB" -r "$room" >/dev/null 2>&1
+#    psql -w -U $PSQL_USER -h $PSQL_HOST --quiet $PSQL_DB < /tmp/state-compressor.sql
+#done
 
+# auto state compress with "big" settings from https://gitlab.com/mb-saces/synatainer
+RUST_LOG=error $HOME/rust-synapse-compress-state/target/debug/synapse_auto_compressor -c 1500 -n 300 -p postgresql://$PSQL_USER:$PSQL_PASSWORD@$PSQL_HOST/$PSQL_DB
+
+# when performing stop, dependencies are stopped
 monit stop synapse
 
 psql -w -U $PSQL_USER -h $PSQL_HOST --quiet -t -c "REINDEX DATABASE $PSQL_DB;" $PSQL_DB
 psql -w -U $PSQL_USER -h $PSQL_HOST --quiet -t -c 'VACUUM FULL;' $PSQL_DB >/dev/null 2>&1
 
+# when performing start, the dependencies are not started
 monit start synapse
 monit start federation_reader
 monit start federation_sender
