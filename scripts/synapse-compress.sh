@@ -13,10 +13,10 @@ PSQL_DB=synapse
 
 ROOMLIST=$(curl --silent --header "Authorization: Bearer $API_TOKEN" $HOST/_synapse/admin/v1/rooms?limit=$ROOMLIMIT)
 
-ROOMS_WITHOUT_LOCAL_USERS=$(echo $ROOMLIST | jq '.rooms[] | select(.joined_local_members == 0) | .room_id')
+ROOMS_WITHOUT_LOCAL_USERS=$(echo $ROOMLIST | jq --raw-output '.rooms[] | select(.joined_local_members == 0) | .room_id')
 
 for room in $ROOMS_WITHOUT_LOCAL_USERS; do
-	curl --silent --header "Authorization: Bearer $API_TOKEN" --header "Content-Type: application/json" -d "{ \"room_id\": $room }" --output /dev/null $HOST/_synapse/admin/v1/purge_room
+	curl --silent --header "Authorization: Bearer $API_TOKEN" --header "Content-Type: application/json" -XDELETE -d "{}" --output /dev/null "$HOST/_synapse/admin/v1/rooms/$room"
 done
 
 TIMESTAMPMS30DAYS=$(date --date="-30 days" +%s000)
@@ -30,7 +30,7 @@ curl --silent --header "Authorization: Bearer $API_TOKEN" --header "Content-Type
 #done
 
 # auto state compress with "big" settings from https://gitlab.com/mb-saces/synatainer
-RUST_LOG=error $HOME/rust-synapse-compress-state/target/debug/synapse_auto_compressor -c 1500 -n 300 -p postgresql://$PSQL_USER:$PSQL_PASSWORD@$PSQL_HOST/$PSQL_DB
+RUST_LOG=error $HOME/rust-synapse-compress-state/target/debug/synapse_auto_compressor -c 1500 -n 300 -p "postgresql://$PSQL_USER:$PSQL_PASSWORD@$PSQL_HOST/$PSQL_DB"
 
 # when performing stop, dependencies are stopped
 monit stop synapse
